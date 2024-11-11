@@ -6,7 +6,7 @@ import authRoutes from './routes/auth.route.js';
 import postRoutes from './routes/post.route.js';
 import commentRoutes from './routes/comment.route.js';
 import cookieParser from 'cookie-parser';
-import cors from 'cors';  // use `import` instead of `require`
+import cors from 'cors';
 
 dotenv.config();  // Load environment variables from .env
 
@@ -22,9 +22,20 @@ mongoose
 
 const app = express();
 
-// CORS setup: allow cross-origin requests
+// Split the allowed frontend URLs into an array
+const allowedOrigins = process.env.FRONTEND_URLS.split(',');
+
+// CORS setup: allow cross-origin requests from the specified frontend URLs
 app.use(cors({
-  origin: process.env.FRONTEND_URL, // replace with your frontend URL 
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      // Allow requests from the allowed origins
+      callback(null, true);
+    } else {
+      // Reject requests from other origins
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,  
 }));
